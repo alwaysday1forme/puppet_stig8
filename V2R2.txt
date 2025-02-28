@@ -1,0 +1,1410 @@
+class rhel8stig::sv_230221 {
+  exec { 'upgrade_rhel8':
+    command => '/usr/bin/yum upgrade -y',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230222 {
+  exec { 'install_updates':
+    command => '/usr/bin/yum update -y',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230223 {
+  exec { 'enable_fips_mode':
+    command => '/usr/bin/fips-mode-setup --enable',
+    path    => ['/usr/bin'],
+    require => Exec['install_updates'],
+  }
+  exec { 'reboot_system':
+    command => '/sbin/reboot',
+    path    => ['/sbin'],
+    subscribe => Exec['enable_fips_mode'],
+  }
+}
+
+class rhel8stig::sv_230224 {
+  notify { 'Ensure disk encryption is enabled during installation or reconfigure partitions to use encryption.': }
+}
+
+class rhel8stig::sv_230225 {
+  file { '/etc/issue':
+    ensure  => file,
+    content => 'You are accessing a U.S. Government (USG) Information System (IS)...',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+  file_line { 'ssh_banner':
+    path  => '/etc/ssh/sshd_config',
+    line  => 'Banner /etc/issue',
+    match => '^#?Banner',
+    notify => Service['sshd'],
+  }
+  service { 'sshd':
+    ensure => running,
+    enable => true,
+  }
+}
+
+class rhel8stig::sv_230226 {
+  file { '/etc/dconf/db/local.d/01-banner-message':
+    ensure  => file,
+    content => "banner-message-text='You are accessing a U.S. Government (USG) Information System (IS)...'",
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+  exec { 'update_dconf':
+    command => '/usr/bin/dconf update',
+    path    => ['/usr/bin'],
+    require => File['/etc/dconf/db/local.d/01-banner-message'],
+  }
+}
+
+class rhel8stig::sv_230227 {
+  file { '/etc/issue':
+    ensure  => file,
+    content => 'You are accessing a U.S. Government (USG) Information System (IS)...',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230228 {
+  package { 'rsyslog':
+    ensure => installed,
+  }
+  file_line { 'rsyslog_secure_logging':
+    path  => '/etc/rsyslog.conf',
+    line  => 'auth.*;authpriv.*;daemon.* /var/log/secure',
+    notify => Service['rsyslog'],
+  }
+  service { 'rsyslog':
+    ensure => running,
+    enable => true,
+  }
+}
+
+class rhel8stig::sv_230229 {
+  file { '/etc/sssd/pki/sssd_auth_ca_db.pem':
+    ensure  => present,
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230230 {
+  exec { 'generate_ssh_key':
+    command => '/usr/bin/ssh-keygen -t rsa -b 4096 -f /root/.ssh/id_rsa -N "[passphrase]"',
+    path    => ['/usr/bin'],
+    creates => '/root/.ssh/id_rsa',
+  }
+}
+
+class rhel8stig::sv_230231 {
+  notify { 'Ensure system-wide cryptographic policies are enforced as per DOD standards.': }
+}
+
+class rhel8stig::sv_230232 {
+  exec { 'configure_audit_rules':
+    command => '/usr/sbin/augenrules --load',
+    path    => ['/usr/sbin'],
+  }
+}
+
+class rhel8stig::sv_230233 {
+  file { '/etc/motd':
+    ensure  => file,
+    content => 'Unauthorized use of this system is prohibited...',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230234 {
+  exec { 'enable_selinux':
+    command => '/usr/sbin/setenforce 1',
+    path    => ['/usr/sbin'],
+  }
+}
+
+class rhel8stig::sv_230235 {
+  file { '/etc/ssh/sshd_config':
+    ensure  => file,
+    content => 'PermitRootLogin no',
+    mode    => '0600',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230236 {
+  exec { 'disable_usb_storage':
+    command => '/usr/bin/modprobe -r usb_storage',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230237 {
+  exec { 'enable_firewalld':
+    command => '/usr/bin/systemctl enable firewalld --now',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230238 {
+  exec { 'disable_ipv6':
+    command => '/usr/sbin/sysctl -w net.ipv6.conf.all.disable_ipv6=1',
+    path    => ['/usr/sbin'],
+  }
+}
+
+class rhel8stig::sv_230239 {
+  exec { 'secure_boot_loader':
+    command => '/usr/sbin/grub2-set-password',
+    path    => ['/usr/sbin'],
+  }
+}
+
+class rhel8stig::sv_230240 {
+  file { '/etc/rsyslog.conf':
+    ensure  => file,
+    content => 'authpriv.* /var/log/secure',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230241 {
+  notify { 'Ensure that all files and directories in /var/log are owned by root.': }
+}
+
+class rhel8stig::sv_230242 {
+  exec { 'set_log_permissions':
+    command => '/usr/bin/chmod -R g-w,o-rwx /var/log',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230243 {
+  exec { 'disable_ctrl_alt_del':
+    command => '/usr/bin/systemctl mask ctrl-alt-del.target',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230244 {
+  exec { 'disable_coredumps':
+    command => '/usr/sbin/sysctl -w fs.suid_dumpable=0',
+    path    => ['/usr/sbin'],
+  }
+}
+
+class rhel8stig::sv_230245 {
+  file { '/var/log/messages':
+    ensure => file,
+    mode   => '0640',
+    owner  => 'root',
+    group  => 'root',
+  }
+}
+
+class rhel8stig::sv_230246 {
+  file { '/var/log/messages':
+    ensure => file,
+    owner  => 'root',
+    group  => 'root',
+  }
+}
+
+class rhel8stig::sv_230247 {
+  exec { 'enable_auditd':
+    command => '/usr/bin/systemctl enable auditd --now',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230248 {
+  file { '/etc/cron.deny':
+    ensure => absent,
+  }
+  file { '/etc/at.deny':
+    ensure => absent,
+  }
+}
+
+class rhel8stig::sv_230249 {
+  file { '/etc/cron.allow':
+    ensure  => present,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0600',
+  }
+}
+
+class rhel8stig::sv_230250 {
+  exec { 'restrict_su_command':
+    command => '/usr/sbin/groupadd wheel && /usr/bin/pwconv',
+    path    => ['/usr/sbin', '/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230251 {
+  exec { 'enforce_password_policy':
+    command => '/usr/bin/authconfig --passminlen=14 --update',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230252 {
+  file { '/etc/login.defs':
+    ensure  => file,
+    content => 'PASS_MAX_DAYS 60',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230253 {
+  exec { 'restrict_sudo':
+    command => '/usr/sbin/visudo -cf /etc/sudoers',
+    path    => ['/usr/sbin'],
+  }
+}
+
+class rhel8stig::sv_230254 {
+  exec { 'enable_audit_logging':
+    command => '/usr/bin/systemctl enable auditd --now',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230255 {
+  file { '/etc/issue.net':
+    ensure  => file,
+    content => 'Unauthorized access is prohibited...',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230256 {
+  exec { 'configure_firewall':
+    command => '/usr/bin/firewall-cmd --set-default-zone=drop',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230257 {
+  exec { 'disable_root_login':
+    command => '/usr/bin/sed -i "s/^PermitRootLogin.*/PermitRootLogin no/" /etc/ssh/sshd_config',
+    path    => ['/usr/bin'],
+  }
+  service { 'sshd':
+    ensure => running,
+    enable => true,
+    subscribe => Exec['disable_root_login'],
+  }
+}
+
+class rhel8stig::sv_230258 {
+  file { '/etc/security/limits.conf':
+    ensure  => file,
+    content => '* hard core 0',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230259 {
+  exec { 'set_selinux_enforcing':
+    command => '/usr/sbin/setenforce 1',
+    path    => ['/usr/sbin'],
+  }
+}
+
+class rhel8stig::sv_230260 {
+  exec { 'restrict_world_writable':
+    command => '/usr/bin/find / -xdev -type d -perm -0002 -exec chmod o-w {} +',
+    path    => ['/usr/bin'],
+  }
+}
+
+
+class rhel8stig::sv_230261 {
+  notify { 'Ensure password authentication is enabled for SSH.': }
+}
+
+class rhel8stig::sv_230262 {
+  exec { 'protect_shared_libs':
+    command => '/usr/bin/chgrp root /lib /lib64 /usr/lib /usr/lib64',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230263 {
+  file { '/etc/cron.daily/aide':
+    ensure  => file,
+    content => "#!/bin/bash\n/usr/sbin/aide --check | /bin/mail -s \"$HOSTNAME - Daily AIDE integrity check run\" root@example_server_name.mil",
+    mode    => '0700',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230264 {
+  file_line { 'enable_gpgcheck':
+    path  => '/etc/yum.repos.d/[your_repo_name].repo',
+    line  => 'gpgcheck=1',
+    match => '^gpgcheck',
+  }
+}
+
+class rhel8stig::sv_230265 {
+  file_line { 'enable_localpkg_gpgcheck':
+    path  => '/etc/dnf/dnf.conf',
+    line  => 'localpkg_gpgcheck=True',
+    match => '^localpkg_gpgcheck',
+  }
+}
+
+class rhel8stig::sv_230266 {
+  file_line { 'disable_kernel_image_loading':
+    path  => '/etc/sysctl.d/99-sysctl.conf',
+    line  => 'kernel.kexec_load_disabled = 1',
+    match => '^kernel.kexec_load_disabled',
+  }
+  exec { 'reload_sysctl':
+    command => '/usr/sbin/sysctl --system',
+    path    => ['/usr/sbin'],
+    subscribe => File_line['disable_kernel_image_loading'],
+  }
+}
+
+class rhel8stig::sv_230267 {
+  file_line { 'enable_dac_symlinks':
+    path  => '/etc/sysctl.d/99-sysctl.conf',
+    line  => 'fs.protected_symlinks = 1',
+    match => '^fs.protected_symlinks',
+  }
+}
+
+class rhel8stig::sv_230268 {
+  file_line { 'enable_dac_hardlinks':
+    path  => '/etc/sysctl.d/99-sysctl.conf',
+    line  => 'fs.protected_hardlinks = 1',
+    match => '^fs.protected_hardlinks',
+  }
+}
+
+class rhel8stig::sv_230269 {
+  file_line { 'restrict_kernel_msg_buffer':
+    path  => '/etc/sysctl.d/99-sysctl.conf',
+    line  => 'kernel.dmesg_restrict = 1',
+    match => '^kernel.dmesg_restrict',
+  }
+}
+
+class rhel8stig::sv_230270 {
+  file_line { 'disable_kernel_profiling':
+    path  => '/etc/sysctl.d/99-sysctl.conf',
+    line  => 'kernel.perf_event_paranoid = 2',
+    match => '^kernel.perf_event_paranoid',
+  }
+}
+
+class rhel8stig::sv_230271 {
+  exec { 'remove_nopasswd':
+    command => '/usr/bin/sed -i \"/NOPASSWD/d\" /etc/sudoers /etc/sudoers.d/*',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230272 {
+  file { '/etc/security/access.conf':
+    ensure  => file,
+    content => '-:ALL EXCEPT root:ALL',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230273 {
+  exec { 'set_tmout':
+    command => '/usr/bin/echo "TMOUT=600" >> /etc/profile',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230274 {
+  file { '/etc/cron.allow':
+    ensure  => present,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0600',
+  }
+}
+
+class rhel8stig::sv_230275 {
+  file { '/etc/issue':
+    ensure  => file,
+    content => 'Unauthorized access is prohibited...',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230276 {
+  exec { 'disable_ipv6':
+    command => '/usr/sbin/sysctl -w net.ipv6.conf.all.disable_ipv6=1',
+    path    => ['/usr/sbin'],
+  }
+}
+
+class rhel8stig::sv_230277 {
+  exec { 'configure_firewalld':
+    command => '/usr/bin/systemctl enable firewalld --now',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230278 {
+  exec { 'restrict_su_command':
+    command => '/usr/sbin/groupadd wheel && /usr/bin/pwconv',
+    path    => ['/usr/sbin', '/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230279 {
+  file { '/etc/ssh/sshd_config':
+    ensure  => file,
+    content => 'PermitRootLogin no',
+    mode    => '0600',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230280 {
+  exec { 'disable_usb_storage':
+    command => '/usr/bin/modprobe -r usb_storage',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230281 {
+  file { '/etc/systemd/system.conf':
+    ensure  => file,
+    content => 'DefaultTimeoutStartSec=10s\nDefaultTimeoutStopSec=10s',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230282 {
+  file { '/etc/motd':
+    ensure  => file,
+    content => 'Unauthorized access is prohibited.',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230283 {
+  exec { 'set_system_max_logins':
+    command => '/usr/bin/echo "* hard maxlogins 10" >> /etc/security/limits.conf',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230284 {
+  exec { 'configure_ntp':
+    command => '/usr/bin/timedatectl set-ntp true',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230285 {
+  exec { 'disable_ctrl_alt_del':
+    command => '/usr/bin/systemctl mask ctrl-alt-del.target',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230286 {
+  file { '/etc/security/limits.conf':
+    ensure  => file,
+    content => '* hard core 0',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230287 {
+  exec { 'disable_non_root_exec':
+    command => '/usr/bin/chmod -R go-w /usr/local/bin',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230288 {
+  file { '/etc/sysctl.d/99-sysctl.conf':
+    ensure  => file,
+    content => 'net.ipv4.conf.all.accept_source_route = 0',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+  exec { 'reload_sysctl':
+    command => '/usr/sbin/sysctl --system',
+    path    => ['/usr/sbin'],
+    subscribe => File['/etc/sysctl.d/99-sysctl.conf'],
+  }
+}
+
+class rhel8stig::sv_230289 {
+  file { '/etc/hosts.deny':
+    ensure  => file,
+    content => 'ALL: ALL',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230290 {
+  exec { 'disable_core_dumps':
+    command => '/usr/bin/sysctl -w fs.suid_dumpable=0',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230291 {
+  exec { 'restrict_access_to_compilers':
+    command => '/usr/bin/chmod 0750 /usr/bin/gcc /usr/bin/cc',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230292 {
+  exec { 'disable_unprivileged_bpf':
+    command => '/usr/bin/sysctl -w kernel.unprivileged_bpf_disabled=1',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230293 {
+  exec { 'disable_ipv4_forwarding':
+    command => '/usr/bin/sysctl -w net.ipv4.ip_forward=0',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230294 {
+  file { '/etc/modprobe.d/disable-usb-storage.conf':
+    ensure  => file,
+    content => 'install usb-storage /bin/true',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230295 {
+  exec { 'set_umask':
+    command => '/usr/bin/echo "umask 077" >> /etc/bashrc',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230296 {
+  exec { 'disable_icmp_redirects':
+    command => '/usr/bin/sysctl -w net.ipv4.conf.all.accept_redirects=0',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230297 {
+  file { '/etc/systemd/coredump.conf':
+    ensure  => file,
+    content => '[Coredump]\nStorage=none',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230298 {
+  exec { 'restrict_mounting_of_fuse':
+    command => '/usr/bin/modprobe -r fuse',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230299 {
+  exec { 'set_kernel_randomize_va_space':
+    command => '/usr/bin/sysctl -w kernel.randomize_va_space=2',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230300 {
+  file { '/etc/security/limits.d/99-custom.conf':
+    ensure  => file,
+    content => '* hard nofile 65535\n* soft nofile 65535',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230301 {
+  exec { 'disable_abrt':
+    command => '/usr/bin/systemctl disable --now abrtd',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230302 {
+  exec { 'disable_core_dumps':
+    command => '/usr/bin/sysctl -w fs.suid_dumpable=0',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230303 {
+  exec { 'restrict_cron_jobs':
+    command => '/usr/bin/rm -f /etc/cron.deny /etc/at.deny && touch /etc/cron.allow /etc/at.allow',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230304 {
+  file { '/etc/motd':
+    ensure  => file,
+    content => 'Unauthorized access is prohibited.',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230305 {
+  exec { 'enable_iptables':
+    command => '/usr/bin/systemctl enable --now iptables',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230306 {
+  exec { 'configure_audit_rules':
+    command => '/usr/sbin/augenrules --load',
+    path    => ['/usr/sbin'],
+  }
+}
+
+class rhel8stig::sv_230307 {
+  file { '/etc/modprobe.d/disable-usb-storage.conf':
+    ensure  => file,
+    content => 'install usb-storage /bin/true',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230308 {
+  exec { 'disable_non_root_exec':
+    command => '/usr/bin/chmod -R go-w /usr/local/bin',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230309 {
+  file { '/etc/security/limits.conf':
+    ensure  => file,
+    content => '* hard core 0',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230310 {
+  exec { 'set_umask':
+    command => '/usr/bin/echo "umask 077" >> /etc/bashrc',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230311 {
+  file { '/etc/hosts.deny':
+    ensure  => file,
+    content => 'ALL: ALL',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230312 {
+  exec { 'disable_icmp_redirects':
+    command => '/usr/bin/sysctl -w net.ipv4.conf.all.accept_redirects=0',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230313 {
+  exec { 'disable_unprivileged_bpf':
+    command => '/usr/bin/sysctl -w kernel.unprivileged_bpf_disabled=1',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230314 {
+  exec { 'set_kernel_randomize_va_space':
+    command => '/usr/bin/sysctl -w kernel.randomize_va_space=2',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230315 {
+  exec { 'disable_ipv4_forwarding':
+    command => '/usr/bin/sysctl -w net.ipv4.ip_forward=0',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230316 {
+  exec { 'restrict_mounting_of_fuse':
+    command => '/usr/bin/modprobe -r fuse',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230317 {
+  exec { 'disable_abrt':
+    command => '/usr/bin/systemctl disable --now abrtd',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230318 {
+  file { '/etc/security/limits.d/99-custom.conf':
+    ensure  => file,
+    content => '* hard nofile 65535\n* soft nofile 65535',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230319 {
+  file { '/etc/systemd/coredump.conf':
+    ensure  => file,
+    content => '[Coredump]\nStorage=none',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230320 {
+  exec { 'disable_core_dumps':
+    command => '/usr/bin/sysctl -w fs.suid_dumpable=0',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230321 {
+  exec { 'disable_kexec':
+    command => '/usr/bin/sysctl -w kernel.kexec_load_disabled=1',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230322 {
+  exec { 'disable_autofs':
+    command => '/usr/bin/systemctl disable --now autofs',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230323 {
+  file { '/etc/modprobe.d/blacklist.conf':
+    ensure  => file,
+    content => 'blacklist usb-storage',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230324 {
+  exec { 'restrict_su':
+    command => '/usr/sbin/groupadd wheel && echo "auth required pam_wheel.so use_uid" >> /etc/pam.d/su',
+    path    => ['/usr/sbin', '/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230325 {
+  file { '/etc/security/limits.d/99-nproc.conf':
+    ensure  => file,
+    content => '* hard nproc 4096',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230326 {
+  exec { 'set_system_wide_umask':
+    command => '/usr/bin/echo "umask 077" >> /etc/profile',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230327 {
+  exec { 'disable_wol':
+    command => '/usr/bin/ethtool -s eth0 wol d',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230328 {
+  file { '/etc/sysctl.d/99-sysctl.conf':
+    ensure  => file,
+    content => 'net.ipv6.conf.all.disable_ipv6 = 1',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230329 {
+  exec { 'restrict_mounting_of_squashfs':
+    command => '/usr/bin/modprobe -r squashfs',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230330 {
+  file { '/etc/systemd/logind.conf':
+    ensure  => file,
+    content => 'HandleLidSwitch=ignore',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230331 {
+  exec { 'disable_prelink':
+    command => '/usr/bin/sed -i "s/PRELINKING=.*/PRELINKING=no/" /etc/sysconfig/prelink',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230332 {
+  exec { 'set_kernel_exec_shield':
+    command => '/usr/bin/sysctl -w kernel.exec-shield=1',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230333 {
+  file { '/etc/rsyslog.conf':
+    ensure  => file,
+    content => '*.info;mail.none;authpriv.none;cron.none /var/log/messages',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230334 {
+  exec { 'disable_avahi_daemon':
+    command => '/usr/bin/systemctl disable --now avahi-daemon',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230335 {
+  exec { 'enable_selinux':
+    command => '/usr/sbin/setenforce 1',
+    path    => ['/usr/sbin'],
+  }
+}
+
+class rhel8stig::sv_230336 {
+  file { '/etc/security/limits.d/90-nproc.conf':
+    ensure  => file,
+    content => '* hard nproc 1024',
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+}
+
+class rhel8stig::sv_230337 {
+  exec { 'disable_coredumps':
+    command => '/usr/bin/sysctl -w fs.suid_dumpable=0',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230338 {
+  exec { 'set_audit_log_max':
+    command => '/usr/bin/echo "max_log_file_action = ROTATE" >> /etc/audit/auditd.conf',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230339 {
+  exec { 'disable_telnet_server':
+    command => '/usr/bin/systemctl disable --now telnet.socket',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230340 {
+  exec { 'disable_readahead':
+    command => '/usr/bin/systemctl disable --now systemd-readahead-collect systemd-readahead-replay',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230341 {
+  exec { 'disable_chargen_services':
+    command => '/usr/bin/systemctl disable --now chargen.socket',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230342 {
+  exec { 'disable_daytime_services':
+    command => '/usr/bin/systemctl disable --now daytime.socket',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230343 {
+  exec { 'disable_echo_services':
+    command => '/usr/bin/systemctl disable --now echo.socket',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230344 {
+  exec { 'disable_discard_services':
+    command => '/usr/bin/systemctl disable --now discard.socket',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230345 {
+  exec { 'disable_time_services':
+    command => '/usr/bin/systemctl disable --now time.socket',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230346 {
+  exec { 'disable_rsh_server':
+    command => '/usr/bin/systemctl disable --now rsh.socket',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230347 {
+  exec { 'disable_rlogin_server':
+    command => '/usr/bin/systemctl disable --now rlogin.socket',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230348 {
+  exec { 'disable_rexec_server':
+    command => '/usr/bin/systemctl disable --now rexec.socket',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230349 {
+  exec { 'disable_tftp_server':
+    command => '/usr/bin/systemctl disable --now tftp.socket',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230350 {
+  exec { 'disable_bootp_services':
+    command => '/usr/bin/systemctl disable --now bootps.socket',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230351 {
+  exec { 'disable_ntalk_services':
+    command => '/usr/bin/systemctl disable --now ntalk.socket',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230352 {
+  exec { 'disable_lpd_services':
+    command => '/usr/bin/systemctl disable --now lpd.socket',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230353 {
+  exec { 'disable_cups':
+    command => '/usr/bin/systemctl disable --now cups',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230354 {
+  exec { 'disable_snmpd':
+    command => '/usr/bin/systemctl disable --now snmpd',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230355 {
+  exec { 'disable_nfs':
+    command => '/usr/bin/systemctl disable --now nfs-server',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230356 {
+  exec { 'disable_rpcbind':
+    command => '/usr/bin/systemctl disable --now rpcbind',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230357 {
+  exec { 'disable_ypbind':
+    command => '/usr/bin/systemctl disable --now ypbind',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230358 {
+  exec { 'disable_nis_server':
+    command => '/usr/bin/systemctl disable --now ypserv',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230359 {
+  exec { 'disable_rdisc':
+    command => '/usr/bin/systemctl disable --now rdisc',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230360 {
+  exec { 'disable_openldap_server':
+    command => '/usr/bin/systemctl disable --now slapd',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230361 {
+  exec { 'disable_xinetd':
+    command => '/usr/bin/systemctl disable --now xinetd',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230362 {
+  exec { 'disable_sendmail':
+    command => '/usr/bin/systemctl disable --now sendmail',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230363 {
+  exec { 'disable_postfix':
+    command => '/usr/bin/systemctl disable --now postfix',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230364 {
+  exec { 'disable_dovecot':
+    command => '/usr/bin/systemctl disable --now dovecot',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230365 {
+  exec { 'disable_vsftpd':
+    command => '/usr/bin/systemctl disable --now vsftpd',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230366 {
+  exec { 'disable_smb':
+    command => '/usr/bin/systemctl disable --now smb',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230367 {
+  exec { 'disable_nmb':
+    command => '/usr/bin/systemctl disable --now nmb',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230368 {
+  exec { 'disable_httpd':
+    command => '/usr/bin/systemctl disable --now httpd',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230369 {
+  exec { 'disable_nginx':
+    command => '/usr/bin/systemctl disable --now nginx',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230370 {
+  exec { 'disable_dhcpd':
+    command => '/usr/bin/systemctl disable --now dhcpd',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230371 {
+  exec { 'disable_named':
+    command => '/usr/bin/systemctl disable --now named',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230372 {
+  exec { 'disable_radiusd':
+    command => '/usr/bin/systemctl disable --now radiusd',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230373 {
+  exec { 'disable_cups':
+    command => '/usr/bin/systemctl disable --now cups',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230374 {
+  exec { 'disable_snmpd':
+    command => '/usr/bin/systemctl disable --now snmpd',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230375 {
+  exec { 'disable_nfs':
+    command => '/usr/bin/systemctl disable --now nfs-server',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230376 {
+  exec { 'disable_rpcbind':
+    command => '/usr/bin/systemctl disable --now rpcbind',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230377 {
+  exec { 'disable_ypbind':
+    command => '/usr/bin/systemctl disable --now ypbind',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230378 {
+  exec { 'disable_nis_server':
+    command => '/usr/bin/systemctl disable --now ypserv',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230379 {
+  exec { 'disable_rdisc':
+    command => '/usr/bin/systemctl disable --now rdisc',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230380 {
+  exec { 'disable_openldap_server':
+    command => '/usr/bin/systemctl disable --now slapd',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230381 {
+  exec { 'disable_telnet_client':
+    command => '/usr/bin/yum remove -y telnet',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230382 {
+  exec { 'disable_tftp_client':
+    command => '/usr/bin/yum remove -y tftp',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230383 {
+  exec { 'disable_rsh_client':
+    command => '/usr/bin/yum remove -y rsh',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230384 {
+  exec { 'disable_talk_client':
+    command => '/usr/bin/yum remove -y talk',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230385 {
+  exec { 'disable_ypbind_client':
+    command => '/usr/bin/yum remove -y ypbind',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230386 {
+  exec { 'disable_xwindows':
+    command => '/usr/bin/yum groupremove -y "X Window System"',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230387 {
+  exec { 'disable_gdm':
+    command => '/usr/bin/systemctl disable --now gdm',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230388 {
+  exec { 'disable_avahi_daemon':
+    command => '/usr/bin/systemctl disable --now avahi-daemon',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230389 {
+  exec { 'disable_cups':
+    command => '/usr/bin/systemctl disable --now cups',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230390 {
+  exec { 'disable_usb_storage':
+    command => '/usr/bin/modprobe -r usb_storage',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230391 {
+  exec { 'disable_firewire':
+    command => '/usr/bin/modprobe -r firewire-core',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230392 {
+  exec { 'disable_bluetooth':
+    command => '/usr/bin/modprobe -r bluetooth',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230393 {
+  exec { 'disable_wifi':
+    command => '/usr/bin/modprobe -r cfg80211',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230394 {
+  exec { 'disable_ipv6':
+    command => '/usr/bin/sysctl -w net.ipv6.conf.all.disable_ipv6=1',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230395 {
+  exec { 'disable_dccp':
+    command => '/usr/bin/modprobe -r dccp',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230396 {
+  exec { 'disable_sctp':
+    command => '/usr/bin/modprobe -r sctp',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230397 {
+  exec { 'disable_rds':
+    command => '/usr/bin/modprobe -r rds',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230398 {
+  exec { 'disable_tipc':
+    command => '/usr/bin/modprobe -r tipc',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230399 {
+  exec { 'disable_nfs_client':
+    command => '/usr/bin/yum remove -y nfs-utils',
+    path    => ['/usr/bin'],
+  }
+}
+
+class rhel8stig::sv_230400 {
+  exec { 'disable_autofs':
+    command => '/usr/bin/systemctl disable --now autofs',
+    path    => ['/usr/bin'],
+  }
+}
