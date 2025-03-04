@@ -1408,3 +1408,136 @@ class rhel8stig::sv_230400 {
     path    => ['/usr/bin'],
   }
 }
+
+class rhel8stig::v_230401 {
+  exec { 'V-230401_fix':
+    command => '/usr/bin/systemctl disable --now service_name',
+    path    => ['/usr/bin', '/usr/sbin'],
+  }
+}
+
+class rhel8stig::v_230402 {
+  exec { 'V-230402_fix':
+    command => '/usr/bin/chmod 600 /etc/secure_file',
+    path    => ['/usr/bin', '/usr/sbin'],
+  }
+}
+
+class rhel8stig::v_230403 {
+  exec { 'V-230403_fix':
+    command => '/usr/sbin/setenforce 1',
+    path    => ['/usr/bin', '/usr/sbin'],
+  }
+}
+
+class rhel8stig::v_230404 {
+  exec { 'V-230404_fix':
+    command => '/usr/bin/firewall-cmd --permanent --add-service=https',
+    path    => ['/usr/bin', '/usr/sbin'],
+  }
+}
+
+class rhel8stig::v_230405 {
+  exec { 'V-230405_fix':
+    command => '/usr/bin/sed -i "s/^#PermitRootLogin.*/PermitRootLogin no/" /etc/ssh/sshd_config',
+    path    => ['/usr/bin', '/usr/sbin'],
+  }
+}
+
+class rhel8stig::v_230406 {
+  exec { 'V-230406_fix':
+    command => '/usr/bin/systemctl enable --now auditd',
+    path    => ['/usr/bin', '/usr/sbin'],
+  }
+}
+
+class rhel8stig::v_230407 {
+  exec { 'V-230407_fix':
+    command => '/usr/bin/dnf install -y package_name',
+    path    => ['/usr/bin', '/usr/sbin'],
+  }
+}
+
+class rhel8stig::v_230408 {
+  exec { 'V-230408_fix':
+    command => '/usr/bin/sysctl -w kernel.dmesg_restrict=1',
+    path    => ['/usr/bin', '/usr/sbin'],
+  }
+}
+
+class rhel8stig::v_230409 {
+  exec { 'V-230409_fix':
+    command => '/usr/bin/chown root:root /etc/critical_file',
+    path    => ['/usr/bin', '/usr/sbin'],
+  }
+}
+
+class rhel8stig::v_230410 {
+  exec { 'V-230410_fix':
+    command => '/usr/bin/modprobe -r usb_storage',
+    path    => ['/usr/bin', '/usr/sbin'],
+  }
+}
+
+class rhel8stig::v_230411 {
+  exec { 'V-230411_fix':
+    command => '/usr/bin/systemctl mask ctrl-alt-del.target',
+    path    => ['/usr/bin', '/usr/sbin'],
+  }
+}
+
+class rhel8stig::v_230412 {
+  exec { 'V-230412_fix':
+    command => '/usr/bin/echo "auth required pam_tally2.so onerr=fail deny=5 unlock_time=900" >> /etc/pam.d/system-auth',
+    path    => ['/usr/bin', '/usr/sbin'],
+  }
+}
+
+class rhel8stig::v_230413 {
+  exec { 'V-230413_fix':
+    command => '/usr/bin/echo "umask 027" >> /etc/bashrc',
+    path    => ['/usr/bin', '/usr/sbin'],
+  }
+}
+
+class rhel8stig::v_230414 {
+  exec { 'V-230414_fix':
+    command => '/usr/bin/systemctl enable --now chronyd',
+    path    => ['/usr/bin', '/usr/sbin'],
+  }
+}
+
+class rhel8stig::v_230415 {
+  exec { 'V-230415_fix':
+    command => '/usr/bin/sed -i "s/^#PrintLastLog.*/PrintLastLog yes/" /etc/ssh/sshd_config',
+    path    => ['/usr/bin', '/usr/sbin'],
+  }
+}
+
+class rhel8stig::v_230416 {
+  exec { 'V-230416_fix':
+    command => '/usr/bin/chmod 700 /root/.ssh',
+    path    => ['/usr/bin', '/usr/sbin'],
+  }
+}
+
+class rhel8stig::v_230417 {
+  exec { 'V-230417_fix':
+    command => '/usr/bin/systemctl disable --now xinetd',
+    path    => ['/usr/bin', '/usr/sbin'],
+  }
+}
+
+class rhel8stig::v_230418 {
+  exec { 'V-230418_fix':
+    command => '/usr/bin/yum remove -y telnet',
+    path    => ['/usr/bin', '/usr/sbin'],
+  }
+}
+
+class rhel8stig::v_230419 {
+  exec { 'V-230419_fix':
+    command => '/usr/bin/echo "net.ipv4.icmp_echo_ignore_broadcasts = 1" >> /etc/sysctl.conf',
+    path    => ['/usr/bin', '/usr/sbin'],
+  }
+}
