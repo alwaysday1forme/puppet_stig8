@@ -1,1 +1,1 @@
-chatgpt puppet modules for stig8
+setting up puppet/ puppet board
